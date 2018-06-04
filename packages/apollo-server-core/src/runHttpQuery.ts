@@ -20,6 +20,11 @@ export interface HttpQueryRequest {
   request: Pick<Request, 'url' | 'method' | 'headers'>;
 }
 
+export interface HttpQueryResponse {
+  gqlResponse: string;
+  responseInit: ResponseInit;
+}
+
 export class HttpQueryError extends Error {
   public statusCode: number;
   public isGraphQLError: boolean;
@@ -42,7 +47,7 @@ export class HttpQueryError extends Error {
 export async function runHttpQuery(
   handlerArguments: Array<any>,
   request: HttpQueryRequest,
-): Promise<string> {
+): Promise<HttpQueryResponse> {
   let isGetRequest: boolean = false;
   let optionsObject: GraphQLOptions;
   const debugDefault =
@@ -288,6 +293,13 @@ export async function runHttpQuery(
 
   const responses = await Promise.all(requests);
 
+  const responseInit: ResponseInit = {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
   if (!isBatch) {
     const gqlResponse = responses[0];
     //This code is run on parse/validation errors and any other error that
@@ -297,8 +309,14 @@ export async function runHttpQuery(
         'Content-Type': 'application/json',
       });
     }
-    return JSON.stringify(gqlResponse);
+    return {
+      gqlResponse: JSON.stringify(gqlResponse),
+      responseInit,
+    };
   }
 
-  return JSON.stringify(responses);
+  return {
+    gqlResponse: JSON.stringify(responses),
+    responseInit,
+  };
 }
