@@ -80,15 +80,11 @@ function createHttpServer(server) {
           query: JSON.parse(body),
           request: convertNodeHttpToRequest(req),
         })
-          .then(({ gqlResponse, responseInit }) => {
+          .then(({ graphqlResponse, responseInit }) => {
             Object.keys(responseInit.headers).forEach(key =>
               res.setHeader(key, responseInit.headers[key]),
             );
-            res.setHeader(
-              'Content-Length',
-              Buffer.byteLength(gqlResponse, 'utf8').toString(),
-            );
-            res.write(gqlResponse);
+            res.write(graphqlResponse);
             res.end();
           })
           .catch(error => {
